@@ -22,6 +22,7 @@ package io.github.uwol.compecon.economy.agent.impl;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.persistence.Column;
@@ -201,6 +202,11 @@ public abstract class AgentImpl implements Agent {
 	@Override
 	public int getId() {
 		return id;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id);
 	}
 
 	@Transient

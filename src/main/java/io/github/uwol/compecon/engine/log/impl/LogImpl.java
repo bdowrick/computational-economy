@@ -136,18 +136,18 @@ public class LogImpl implements Log {
 	private void agent_onUtility(final Agent agent, final Currency currency,
 			final Map<GoodType, Double> bundleOfGoodsToConsume, final double utility) {
 		if (this.isAgentSelectedByClient(agent)) {
-			String log = "consumed ";
+			StringBuilder log = new StringBuilder("consumed ");
 			int i = 0;
 			for (final Entry<GoodType, Double> entry : bundleOfGoodsToConsume.entrySet()) {
-				log += MathUtil.round(entry.getValue()) + " " + entry.getKey();
+				log.append(MathUtil.round(entry.getValue())).append(" ").append(entry.getKey());
 				if (i < bundleOfGoodsToConsume.size() - 1) {
-					log += ", ";
+					log.append(", ");
 				}
 				i++;
 			}
-			log += " -> " + MathUtil.round(utility) + " utility";
+			log.append(" -> ").append(MathUtil.round(utility)).append(" utility");
 
-			this.log(agent, log);
+			this.log(agent, log.toString());
 		}
 
 		if (!ApplicationContext.getInstance().getTimeSystem().isInitializationPhase()) {

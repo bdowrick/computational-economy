@@ -19,6 +19,7 @@ along with ComputationalEconomy. If not, see <http://www.gnu.org/licenses/>.
 
 package io.github.uwol.compecon.economy.property.impl;
 
+import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.Entity;
@@ -105,6 +106,11 @@ public abstract class PropertyImpl implements Property {
 
 	public void setDeconstructed(final boolean isDeconstructed) {
 		this.isDeconstructed = isDeconstructed;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id);
 	}
 
 	public void setId(final int id) {
