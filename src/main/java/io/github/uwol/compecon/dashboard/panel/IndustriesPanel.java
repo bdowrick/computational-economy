@@ -186,13 +186,6 @@ public class IndustriesPanel extends AbstractChartsPanel implements ModelListene
 		add(jTabbedPaneCurrency, BorderLayout.CENTER);
 	}
 
-	protected ChartPanel createChartPanel(JFreeChart chart) {
-		final ChartPanel chartPanel = new ChartPanel(chart);
-		configureChart(chart);
-
-		return chartPanel;
-	}
-
 	protected JFreeChart createCapitalDepreciationChart(final Currency currency, final GoodType outputGoodType) {
 		final TimeSeriesCollection timeSeriesCollection = new TimeSeriesCollection();
 

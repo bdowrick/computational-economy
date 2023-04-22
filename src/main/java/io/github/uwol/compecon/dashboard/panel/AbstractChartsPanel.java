@@ -22,6 +22,7 @@ package io.github.uwol.compecon.dashboard.panel;
 import java.awt.Color;
 import java.text.SimpleDateFormat;
 
+import java.util.Optional;
 import javax.swing.JPanel;
 
 import org.jfree.chart.ChartFactory;
@@ -52,13 +53,17 @@ public abstract class AbstractChartsPanel extends JPanel {
 		plot.setRangeGridlinePaint(Color.white);
 		plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
 
-		final DateAxis dateAxis = (DateAxis) plot.getDomainAxis();
-		final NumberAxis valueAxis = (NumberAxis) plot.getRangeAxis();
+		if(plot.getDomainAxis() instanceof DateAxis) {
+			final DateAxis dateAxis = (DateAxis) plot.getDomainAxis();
+			dateAxis.setDateFormatOverride(new SimpleDateFormat("dd-MMM"));
+		}
 
-		dateAxis.setDateFormatOverride(new SimpleDateFormat("dd-MMM"));
-		valueAxis.setAutoRangeIncludesZero(true);
-		valueAxis.setUpperMargin(0.15);
-		valueAxis.setLowerMargin(0.15);
+		if(plot.getRangeAxis() instanceof NumberAxis) {
+			final NumberAxis valueAxis = (NumberAxis) plot.getRangeAxis();
+			valueAxis.setAutoRangeIncludesZero(true);
+			valueAxis.setUpperMargin(0.15);
+			valueAxis.setLowerMargin(0.15);
+		}
 	}
 
 	protected JPanel createCentralBankBalanceSheetPanel(final Currency currency) {
@@ -95,6 +100,13 @@ public abstract class AbstractChartsPanel extends JPanel {
 
 		return new BalanceSheetPanel(currency, balanceSheetTableModel,
 				"Balance Sheet for " + currency.getIso4217Code() + " Credit Banks");
+	}
+
+	protected ChartPanel createChartPanel(JFreeChart chart) {
+		final ChartPanel chartPanel = new ChartPanel(chart);
+		configureChart(chart);
+
+		return chartPanel;
 	}
 
 	protected JPanel createFactoryBalanceSheetPanel(final Currency currency) {

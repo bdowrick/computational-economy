@@ -53,9 +53,9 @@ public class BanksPanel extends AbstractChartsPanel implements ModelListener {
 
 		protected final Currency currency;
 
-		protected Map<Currency, JPanel> marketDepthPanel = new HashMap<Currency, JPanel>();
+		protected Map<Currency, ChartPanel> marketDepthPanel = new HashMap<>();
 
-		protected Map<Currency, JPanel> priceTimeSeriesPanels = new HashMap<Currency, JPanel>();
+		protected Map<Currency, ChartPanel> priceTimeSeriesPanels = new HashMap<>();
 
 		public BanksPanelForCurrency(final Currency currency) {
 			this.currency = currency;
@@ -69,6 +69,17 @@ public class BanksPanel extends AbstractChartsPanel implements ModelListener {
 					.registerListener(this);
 			// no registration with the market depth model, as they call
 			// listeners synchronously
+			// add prices & market depth panels
+			for (final Currency commodityCurrency : Currency.values()) {
+				if (!commodityCurrency.equals(currency)) {
+					priceTimeSeriesPanels.put(commodityCurrency,
+							createPriceTimeSeriesChartPanel(currency, commodityCurrency));
+					this.add(priceTimeSeriesPanels.get(commodityCurrency));
+
+					marketDepthPanel.put(commodityCurrency, createMarketDepthPanel(currency, commodityCurrency));
+					this.add(marketDepthPanel.get(commodityCurrency));
+				}
+			}
 
 			notifyListener();
 		}
@@ -76,26 +87,14 @@ public class BanksPanel extends AbstractChartsPanel implements ModelListener {
 		@Override
 		public synchronized void notifyListener() {
 			if (isShowing()) {
-				// remove prices panels
-				for (final Entry<Currency, JPanel> pricePanel : priceTimeSeriesPanels.entrySet()) {
-					this.remove(pricePanel.getValue());
-				}
 
-				// remove market depth panels
-				for (final Entry<Currency, JPanel> priceFunctionPanel : marketDepthPanel.entrySet()) {
-					this.remove(priceFunctionPanel.getValue());
-				}
+				for(final Currency commodityCurrency : Currency.values()) {
+						if (commodityCurrency.equals(currency)) {
+							continue;
+						}
 
-				// add prices & market depth panels
-				for (final Currency commodityCurrency : Currency.values()) {
-					if (!commodityCurrency.equals(currency)) {
-						priceTimeSeriesPanels.put(commodityCurrency,
-								createPriceTimeSeriesChartPanel(currency, commodityCurrency));
-						this.add(priceTimeSeriesPanels.get(commodityCurrency));
-
-						marketDepthPanel.put(commodityCurrency, createMarketDepthPanel(currency, commodityCurrency));
-						this.add(marketDepthPanel.get(commodityCurrency));
-					}
+						priceTimeSeriesPanels.get(commodityCurrency).setChart(createPriceTimeSeriesChart(currency, commodityCurrency));
+						marketDepthPanel.get(commodityCurrency).setChart(createMarketDepthChart(currency, commodityCurrency));
 				}
 
 				validate();
@@ -128,20 +127,26 @@ public class BanksPanel extends AbstractChartsPanel implements ModelListener {
 		add(jTabbedPaneCurrency, BorderLayout.CENTER);
 	}
 
-	protected ChartPanel createMarketDepthPanel(final Currency currency, final Currency commodityCurrency) {
+	protected JFreeChart createMarketDepthChart(final Currency currency, final Currency commodityCurrency) {
 		final XYDataset dataset = ApplicationContext.getInstance().getModelRegistry()
 				.getNationalEconomyModel(currency).marketDepthModel.getMarketDepthDataset(currency, commodityCurrency);
-		final JFreeChart chart = ChartFactory.createXYStepAreaChart(
+		return ChartFactory.createXYStepAreaChart(
 				commodityCurrency.getIso4217Code() + " Market Depth", "Price", "Volume", dataset,
 				PlotOrientation.VERTICAL, true, true, false);
-		return new ChartPanel(chart);
+	}
+
+	protected ChartPanel createMarketDepthPanel(final Currency currency, final Currency commodityCurrency) {
+		return createChartPanel(createMarketDepthChart(currency, commodityCurrency));
+	}
+
+	protected JFreeChart createPriceTimeSeriesChart(final Currency currency, final Currency commodityCurrency) {
+		return ChartFactory.createCandlestickChart(
+				commodityCurrency.getIso4217Code() + " Prices", "Time", "Price in " + currency.getIso4217Code(),
+				getDefaultHighLowDataset(currency, commodityCurrency), false);
 	}
 
 	protected ChartPanel createPriceTimeSeriesChartPanel(final Currency currency, final Currency commodityCurrency) {
-		final JFreeChart priceChart = ChartFactory.createCandlestickChart(
-				commodityCurrency.getIso4217Code() + " Prices", "Time", "Price in " + currency.getIso4217Code(),
-				getDefaultHighLowDataset(currency, commodityCurrency), false);
-		final ChartPanel chartPanel = new ChartPanel(priceChart);
+		final ChartPanel chartPanel = createChartPanel(createPriceTimeSeriesChart(currency, commodityCurrency));
 		chartPanel.setDomainZoomable(true);
 		chartPanel.setPreferredSize(new java.awt.Dimension(800, 400));
 		return chartPanel;

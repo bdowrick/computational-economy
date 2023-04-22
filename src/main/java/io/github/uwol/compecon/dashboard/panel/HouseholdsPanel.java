@@ -62,9 +62,9 @@ public class HouseholdsPanel extends AbstractChartsPanel implements ModelListene
 
 		protected JFreeChart incomeDistributionChart;
 
-		protected JPanel marketDepthPanel;
+		protected ChartPanel marketDepthPanel;
 
-		protected JPanel priceTimeSeriesPanel;
+		protected ChartPanel priceTimeSeriesPanel;
 
 		public HouseholdsPanelForCurrency(final Currency currency) {
 			this.currency = currency;
@@ -130,18 +130,21 @@ public class HouseholdsPanel extends AbstractChartsPanel implements ModelListene
 				}
 
 				// prices panel
-				if (priceTimeSeriesPanel != null) {
-					this.remove(priceTimeSeriesPanel);
+				if (priceTimeSeriesPanel == null) {
+					priceTimeSeriesPanel = createPriceTimeSeriesChartPanel(currency);
+					this.add(priceTimeSeriesPanel);
+				} else {
+					priceTimeSeriesPanel.setChart(createPriceTimeSeriesChart(currency));
 				}
-				priceTimeSeriesPanel = createPriceTimeSeriesChartPanel(currency);
-				this.add(priceTimeSeriesPanel);
+
 
 				// market depth panel
-				if (marketDepthPanel != null) {
-					this.remove(marketDepthPanel);
+				if (marketDepthPanel == null) {
+					marketDepthPanel = createMarketDepthPanel(currency);
+					this.add(marketDepthPanel);
+				} else {
+					marketDepthPanel.setChart(createMarketDepthChart(currency));
 				}
-				marketDepthPanel = createMarketDepthPanel(currency);
-				this.add(marketDepthPanel);
 
 				validate();
 				repaint();
@@ -262,19 +265,25 @@ public class HouseholdsPanel extends AbstractChartsPanel implements ModelListene
 		return new ChartPanel(lorenzCurveChart);
 	}
 
-	protected ChartPanel createMarketDepthPanel(final Currency currency) {
+	protected JFreeChart createMarketDepthChart(final Currency currency) {
 		final XYDataset dataset = ApplicationContext.getInstance().getModelRegistry()
 				.getNationalEconomyModel(currency).marketDepthModel.getMarketDepthDataset(currency,
 						GoodType.LABOURHOUR);
-		final JFreeChart chart = ChartFactory.createXYStepAreaChart(GoodType.LABOURHOUR + " Market Depth", "Price",
+		return ChartFactory.createXYStepAreaChart(GoodType.LABOURHOUR + " Market Depth", "Price",
 				"Volume", dataset, PlotOrientation.VERTICAL, true, true, false);
-		return new ChartPanel(chart);
+	}
+
+	protected ChartPanel createMarketDepthPanel(final Currency currency) {
+		return createChartPanel(createMarketDepthChart(currency));
+	}
+
+	protected JFreeChart createPriceTimeSeriesChart(final Currency currency) {
+		return ChartFactory.createCandlestickChart(GoodType.LABOURHOUR + " Prices", "Time",
+				"Price in " + currency.getIso4217Code(), getDefaultHighLowDataset(currency), false);
 	}
 
 	protected ChartPanel createPriceTimeSeriesChartPanel(final Currency currency) {
-		final JFreeChart priceChart = ChartFactory.createCandlestickChart(GoodType.LABOURHOUR + " Prices", "Time",
-				"Price in " + currency.getIso4217Code(), getDefaultHighLowDataset(currency), false);
-		final ChartPanel chartPanel = new ChartPanel(priceChart);
+		final ChartPanel chartPanel = createChartPanel(createPriceTimeSeriesChart(currency));
 		chartPanel.setDomainZoomable(true);
 		chartPanel.setPreferredSize(new java.awt.Dimension(800, 400));
 		return chartPanel;
